@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\BillDetail;
 use App\Models\Comment;
 use App\Models\Product;
+use App\Models\Cart;
 use App\Models\ProductType;
 use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 
 class PageController extends Controller
 {
@@ -57,21 +59,9 @@ class PageController extends Controller
     public function getAdminAdd() {
         return view('pages.admin.formAdd');
     }
-
-        							
+							
     public function postAdminAdd(Request $request) 
     {
-        // $request->validate([
-        //     'inputName' => 'required|string|max:255',
-        //     'inputImage' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        //     'inputDescription' => 'nullable|string',
-        //     'inputPrice' => 'required|numeric|min:0',
-        //     'inputPromotionPrice' => 'nullable|numeric|min:0',
-        //     'inputUnit' => 'required|string|max:50',
-        //     'inputNew' => 'required|boolean',
-        //     'inputType' => 'required|integer|exists:type_products,id',
-        // ]);
-    
         $product = new Product();
         
         if ($request->hasFile('inputImage')) {
@@ -147,11 +137,6 @@ class PageController extends Controller
             return back()->withErrors(['message' => 'User not found.']);
         }
     
-        $product = Product::find($id);
-        if (!$product) {
-            return back()->withErrors(['message' => 'Product not found.']);
-        }
-    
         $comment = new Comment();
         $comment->id_product = $id;
         $comment->username = $user->name;
@@ -159,5 +144,56 @@ class PageController extends Controller
         $comment->save();
     
         return back()->with('success', 'Comment added successfully!');
+    }
+
+    public function find(Request $request) {
+        $slide = Slide::all();
+    
+        $query = Product::query();
+    
+        if ($request->has('keyword') && !empty($request->input('keyword'))) {
+            $keyword = $request->input('keyword');
+            $query->where('name', 'LIKE', "%{$keyword}%");
+        }
+    
+        $new_product = $query->where('new', 1)->paginate(4);
+        $promotion_product = $query->where('promotion_price', '<>', 0)->paginate(8);
+    
+        return view('pages.trangchu', compact('slide', 'new_product', 'promotion_product'));
+    }
+
+    public function getAddToCart(Request $req, $id)
+    {
+        if (!Session::has('user')) {
+            return redirect('/signin')->with('error', 'Vui lòng đăng nhập để sử dụng chức năng này.');
+        }
+        
+        $product = Product::find($id);
+        if (!$product) {
+            return redirect('/')->with('error', 'Không tìm thấy sản phẩm này.');
+        }
+        
+        $oldCart = Session::get('cart', null);
+        $cart = new Cart($oldCart);
+        
+        $cart->add($product, $id);
+        
+        $req->session()->put('cart', $cart);
+        
+        return redirect()->back()->with('success', 'Sản phẩm đã được thêm vào giỏ hàng.');
+    }
+    
+    public function getDelItemCart($id){
+        $oldCart = Session::has('cart')?Session::get('cart'):null;
+        $cart = new Cart($oldCart);
+        $cart->removeItem($id);
+        if(count($cart->items)>0){
+        Session::put('cart',$cart);
+
+        }
+        else{
+            Session::forget('cart');
+        }
+        return redirect()->back();
     }
 }

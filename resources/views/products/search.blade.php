@@ -1,16 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-@if (session('success'))
-    <div class="alert alert-success" id="success-message">
-        {{ session('success') }}
-    </div>
-    <script>
-        setTimeout(function() {
-            document.getElementById('success-message').style.display = 'none';
-        }, 3000);
-    </script>
-@endif
 <div class="rev-slider">
     <div class="fullwidthbanner-container">
         <div class="fullwidthbanner">

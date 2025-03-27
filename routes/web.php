@@ -4,19 +4,20 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
 
 // Route::resource('/products', ProductController::class);
 
-Route::get('/home', [PageController::class, 'index']);
+Route::get('/home', [PageController::class, 'index'])->name('trang-chu');
 Route::get('/add_to_cart', [PageController::class, 'addCart'])->name('themgiohang');
-Route::get('/type/{id}', [PageController::class, 'getLoaiSp']);
+Route::get('/type/{id}', [PageController::class, 'getLoaiSp'])->name('loaisanpham');
 Route::get('/detail/{id}', [PageController::class, 'getDetail']);
-Route::get('/aboutUs', [PageController::class, 'getAboutUs']);
-Route::get('/contactUs', [PageController::class, 'getContact']);
+Route::get('/aboutUs', [PageController::class, 'getAboutUs'])->name('aboutUs');
+Route::get('/contactUs', [PageController::class, 'getContact'])->name('contactUs');
 Route::post('/comment/{id}', [PageController::class, 'comment']);
 
 // Admin
@@ -38,5 +39,21 @@ Route::post('/signup', [AuthController::class, 'register']);
 Route::get('/signin', [AuthController::class, 'showSigninForm']);
 Route::post('/signin', [AuthController::class, 'login']);
 
+Route::get('/search', [PageController::class, 'find']);
 
+// Cart
+Route::get('add-to-cart/{id}', [PageController::class, 'getAddToCart'])->name('themgiohang');
+Route::get('add-cart/{id}', [PageController::class, 'getDelItemCart'])->name('xoagiohang');
+Route::get('/products', [AuthController::class, 'products']);
+Route::get('/detail/{id}', [AuthController::class, 'detail']);
+Route::get('/delete/{id}', [AuthController::class, 'delete']);
+Route::put('/update/{id}', [AuthController::class, 'update']);
+Route::middleware('web')->get('/sanctum/csrf-cookie', function (Request $request) {
+    return response()->json(['message' => 'CSRF token set']);
+});
 
+Route::get('/csrf-token', function () {
+    return response()->json([
+        'csrf_token' => csrf_token()
+    ]);
+});
