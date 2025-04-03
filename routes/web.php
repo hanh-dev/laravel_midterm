@@ -44,10 +44,10 @@ Route::get('/search', [PageController::class, 'find']);
 // Cart
 Route::get('add-to-cart/{id}', [PageController::class, 'getAddToCart'])->name('themgiohang');
 Route::get('add-cart/{id}', [PageController::class, 'getDelItemCart'])->name('xoagiohang');
-Route::get('/products', [AuthController::class, 'products']);
-Route::get('/detail/{id}', [AuthController::class, 'detail']);
-Route::get('/delete/{id}', [AuthController::class, 'delete']);
-Route::put('/update/{id}', [AuthController::class, 'update']);
+// Route::get('/products', [AuthController::class, 'products']);
+// Route::get('/detail/{id}', [AuthController::class, 'detail']);
+// Route::get('/delete/{id}', [AuthController::class, 'delete']);
+// Route::put('/update/{id}', [AuthController::class, 'update']);
 Route::middleware('web')->get('/sanctum/csrf-cookie', function (Request $request) {
     return response()->json(['message' => 'CSRF token set']);
 });
@@ -57,3 +57,9 @@ Route::get('/csrf-token', function () {
         'csrf_token' => csrf_token()
     ]);
 });
+
+Route::get('/api/v1/products', [AuthController::class, 'products']);
+Route::get('/api/v1/products/{id}', [AuthController::class, 'detail']);
+Route::post('/api/v1/products', [AuthController::class, 'store']);
+Route::get('/api/v1/products/delete/{id}', [AuthController::class, 'delete']);
+Route::put('/api/v1/products/update/{id}', [AuthController::class, 'updateProduct']);

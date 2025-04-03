@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
@@ -51,6 +52,16 @@ class AuthController extends Controller
         return back()->withErrors(['email' => 'Invalid email or password.']);
     }
 // fjdk
+
+
+
+
+
+
+
+
+
+
     public function products(){
         $products = Product::all();
         return response()->json($products);
@@ -67,26 +78,46 @@ class AuthController extends Controller
         return response()->json($product);
     }
 
+    
     public function store(Request $request)
     {
+        // Validate dữ liệu
         $request->validate([
             'name' => 'required|string|max:255',
+            'unit_price' => 'required|numeric',
+            'promotion_price' => 'nullable|numeric',
+            'unit' => 'required|string|max:50',
+            'new' => 'required|boolean',
+            'id_type' => 'required|integer|exists:type_products,id',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer|min:1',
         ]);
-
+    
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imagePath = $image->store('products', 'public');
+        }
+    
+        // Lưu vào database
         $product = Product::create([
             'name' => $request->name,
+            'unit_price' => $request->unit_price,
+            'promotion_price' => $request->promotion_price,
+            'unit' => $request->unit,
+            'new' => $request->new,
+            'id_type' => $request->id_type,
+            'image' => $imagePath, 
             'description' => $request->description,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
         ]);
+    
+        return response()->json([
+            'message' => 'Sản phẩm đã được tạo thành công!',
+            'product' => $product
+        ], 201);
+    }    
 
-        return response()->json($product, 201);
-    }
-
-    public function update(Request $request, $id)
+    public function updateProduct(Request $request, $id)
     {
         $product = Product::find($id);
 
@@ -96,9 +127,13 @@ class AuthController extends Controller
 
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'sometimes|required|numeric',
-            'quantity' => 'sometimes|required|integer|min:1',
+            'unit_price' => 'sometimes|required|numeric',
+            'promotion_price' => 'sometimes|nullable|numeric',
+            'unit' => 'sometimes|required|string|max:50',
+            'new' => 'sometimes|required|boolean',
+            'id_type' => 'sometimes|required|integer|exists:type_products,id',
+            'image' => 'sometimes|required|string',
+            'description' => 'sometimes|nullable|string',
         ]);
 
         $product->update($request->all());
